@@ -1,0 +1,49 @@
+# Tumoflip Studio
+
+Tumoflip Studio is the unified macOS workspace for Tumoflip firmware, Flipper Zero,
+Module One, and Unleashed Companion integrations.
+
+## Included workspaces
+
+- **AI & Relay**: AI-provider collection, local HTTP/Bonjour endpoint, BLE App Bridge,
+  allowlisted host-command Relay, Claude Buddy relay, and ARF offload transport.
+- **TumoCard**: read-only NFC CCID discovery, public ISO 7816 metadata, APDU timeline,
+  history, and redacted reports.
+- **Network Lab**: Module One / ESP32 Marauder serial monitoring, inventory, findings,
+  authorized capture workflow, and reports.
+- **FAP Developer**: firmware identity inspection, FAP API compatibility reports, builds,
+  and controlled USB launch.
+- **Activity**: shared transport and application events.
+
+The application coordinates wired transports so PC/SC, serial, and Flipper USB jobs
+cannot claim the same device concurrently. Bluetooth and the local HTTP service can
+remain active in the background.
+
+## Build and install
+
+Requirements: macOS 14 or newer and Xcode 16 or a compatible Swift toolchain.
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --jobs 2
+./script/build_and_run.sh --verify
+./script/install_app.sh
+```
+
+The installed bundle is `/Applications/Tumoflip Studio.app`. Local builds are
+ad-hoc signed and are not notarized.
+
+## Configuration
+
+AI Radar defaults to `~/Projects/Flipper/flipper-ai-dashboard`. Override the
+collector root with `TUMOFLIP_AI_RADAR_ROOT` and Python with `TUMOFLIP_PYTHON`.
+Relay defaults to `~/Projects/Flipper/flipper_relay/mac/commands.local.json`, with
+`commands.example.json` as a fallback. Override it with `TUMOFLIP_RELAY_CONFIG`.
+The Developer workspace defaults to `~/Projects/Flipper/unleashed-firmware`.
+
+## Safety boundaries
+
+- TumoCard only permits the read-only APDU allowlist inherited from TumoCard Studio.
+- Network Lab active operations are intended only for networks you own or are
+  explicitly authorized to assess.
+- Existing standalone applications remain installed until each migrated workspace
+  is accepted in Tumoflip Studio.
