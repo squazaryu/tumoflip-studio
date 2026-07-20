@@ -12,7 +12,12 @@ APP_BUNDLE="$DIST_DIR/$DISPLAY_NAME.app"
 APP_BINARY="$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
-TUMOFLIP_STUDIO_CONFIGURATION=debug "$ROOT_DIR/script/package_app.sh" bundle
+
+CONFIGURATION=debug
+if [[ "$MODE" == "--install" || "$MODE" == "install" ]]; then
+    CONFIGURATION=release
+fi
+TUMOFLIP_STUDIO_CONFIGURATION="$CONFIGURATION" "$ROOT_DIR/script/package_app.sh" bundle
 
 open_app() {
     /usr/bin/open -n "$APP_BUNDLE"
