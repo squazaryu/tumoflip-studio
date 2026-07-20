@@ -1,0 +1,30 @@
+name: macOS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tumoflip-studio-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run XCTest suite
+        run: swift test --jobs 2
+
+      - name: Build application
+        run: swift build --product TumoflipStudio --jobs 2
+
+      - name: Build and verify app bundle
+        run: ./script/package_app.sh bundle

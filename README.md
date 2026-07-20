@@ -32,6 +32,18 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --jobs 2
 The installed bundle is `/Applications/Tumoflip Studio.app`. Local builds are
 ad-hoc signed and are not notarized.
 
+Create an installable Apple Silicon beta archive with:
+
+```bash
+./script/package_release.sh v0.1.0-beta.1 1
+cd dist && shasum -a 256 -c SHA256SUMS
+```
+
+The release command writes the app bundle, a versioned ZIP, `SHA256SUMS`, and
+`BUILD-METADATA.txt` to `dist/`. The default ad-hoc signature is suitable for
+beta testing only. A stable public release still requires Developer ID signing,
+Apple notarization, and stapling.
+
 ## Configuration
 
 AI Radar defaults to `~/Projects/Flipper/flipper-ai-dashboard`. Override the
