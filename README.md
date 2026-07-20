@@ -3,6 +3,11 @@
 Tumoflip Studio is the unified macOS workspace for Tumoflip firmware, Flipper Zero,
 Module One, and Unleashed Companion integrations.
 
+This repository is also the canonical home of TumoCard for macOS. The former
+standalone TumoCard Studio app has been consolidated into the **TumoCard**
+workspace so NFC CCID access shares the same transport coordination, navigation,
+and release lifecycle as the other Tumoflip tools.
+
 ## Included workspaces
 
 - **AI & Relay**: AI-provider collection, local HTTP/Bonjour endpoint, BLE App Bridge,
