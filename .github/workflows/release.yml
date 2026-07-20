@@ -1,0 +1,43 @@
+name: macOS beta release
+
+on:
+  push:
+    tags:
+      - "v*-beta.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tumoflip-studio-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run XCTest suite
+        run: swift test --jobs 2
+
+      - name: Build ad-hoc beta archive
+        run: ./script/package_release.sh "$GITHUB_REF_NAME" "$GITHUB_RUN_NUMBER"
+
+      - name: Verify archive checksum
+        run: cd dist && shasum -a 256 -c SHA256SUMS
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/TumoflipStudio-*.zip \
+            dist/SHA256SUMS \
+            dist/BUILD-METADATA.txt \
+            --prerelease \
+            --verify-tag \
+            --title "Tumoflip Studio ${GITHUB_REF_NAME}" \
+            --notes "Unified macOS beta for Tumoflip. This artifact is ad-hoc signed and not notarized."
