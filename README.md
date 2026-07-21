@@ -25,10 +25,12 @@ cannot claim the same device concurrently. Bluetooth and the local HTTP service 
 remain active in the background.
 
 Closing the main window keeps those background services running in the macOS menu bar.
-Use **Open Tumoflip Studio** to restore the window and **Quit** to stop the services and
-terminate the process. The Dock uses one canonical icon so it remains identical while
-the window is open, hidden, or the application is not running. Light, dark, and Liquid
-Glass artwork variants are retained in `Resources/AppIconSources`.
+The standard macOS **Quit** action and Command-Q also move the application into this
+background state. Use **Open Tumoflip Studio** to restore the window and **Quit Completely**
+in the status menu to stop the services and terminate the process. The Dock uses one
+canonical icon so it remains identical while the window is open, hidden, or the application
+is not running. Light, dark, and Liquid Glass artwork variants are retained in
+`Resources/AppIconSources`.
 
 ## Build and install
 

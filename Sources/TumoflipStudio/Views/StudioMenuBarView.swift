@@ -3,6 +3,7 @@ import SwiftUI
 
 struct StudioMenuBarView: View {
     @ObservedObject var state: AppState
+    let quitCompletely: () -> Void
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -18,10 +19,7 @@ struct StudioMenuBarView: View {
         .keyboardShortcut("o")
         Button("Refresh AI Radar", action: state.aiRadar.collectNow)
         Divider()
-        Button("Quit") {
-            state.stop()
-            NSApp.terminate(nil)
-        }
+        Button("Quit Completely", action: quitCompletely)
         .keyboardShortcut("q")
     }
 
