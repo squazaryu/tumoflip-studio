@@ -24,6 +24,12 @@ The application coordinates wired transports so PC/SC, serial, and Flipper USB j
 cannot claim the same device concurrently. Bluetooth and the local HTTP service can
 remain active in the background.
 
+Closing the main window keeps those background services running in the macOS menu bar.
+Use **Open Tumoflip Studio** to restore the window and **Quit** to stop the services and
+terminate the process. The Dock uses one canonical icon so it remains identical while
+the window is open, hidden, or the application is not running. Light, dark, and Liquid
+Glass artwork variants are retained in `Resources/AppIconSources`.
+
 ## Build and install
 
 Requirements: macOS 14 or newer and Xcode 16 or a compatible Swift toolchain.
@@ -32,6 +38,12 @@ Requirements: macOS 14 or newer and Xcode 16 or a compatible Swift toolchain.
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --jobs 2
 ./script/build_and_run.sh --verify
 ./script/install_app.sh
+```
+
+Regenerate the conventional macOS `AppIcon.icns` from the canonical dark 1024 px source with:
+
+```bash
+./script/generate_app_icon.sh
 ```
 
 The installed bundle is `/Applications/Tumoflip Studio.app`. Local builds are

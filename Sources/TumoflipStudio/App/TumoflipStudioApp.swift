@@ -1,10 +1,25 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 final class TumoflipStudioAppDelegate: NSObject, NSApplicationDelegate {
+    private weak var state: AppState?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        state?.stop()
+    }
+
+    func configure(state: AppState) {
+        self.state = state
     }
 }
 
@@ -17,7 +32,10 @@ struct TumoflipStudioApp: App {
         WindowGroup("Tumoflip Studio", id: "main") {
             StudioRootView(state: state)
                 .frame(minWidth: 1040, minHeight: 680)
-                .task { state.start() }
+                .task {
+                    appDelegate.configure(state: state)
+                    state.start()
+                }
         }
         .defaultSize(width: 1280, height: 780)
         .windowStyle(.titleBar)
@@ -31,8 +49,15 @@ struct TumoflipStudioApp: App {
             }
         }
 
-        MenuBarExtra("Tumoflip Studio", systemImage: "externaldrive.connected.to.line.below") {
+        MenuBarExtra {
             StudioMenuBarView(state: state)
+                .task {
+                    appDelegate.configure(state: state)
+                    state.start()
+                }
+        } label: {
+            StudioMenuBarLabel()
         }
+        .menuBarExtraStyle(.menu)
     }
 }

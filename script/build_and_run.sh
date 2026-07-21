@@ -24,8 +24,37 @@ open_app() {
 }
 
 install_app() {
-    ditto "$APP_BUNDLE" "/Applications/$DISPLAY_NAME.app"
-    /usr/bin/open -n "/Applications/$DISPLAY_NAME.app"
+    local install_path="/Applications/$DISPLAY_NAME.app"
+    local staging_path="/Applications/.$APP_NAME.installing"
+    local backup_path="/Applications/.$APP_NAME.previous"
+    local lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
+    rm -rf "$staging_path" "$backup_path"
+    ditto "$APP_BUNDLE" "$staging_path"
+
+    if [[ -d "$install_path" ]]; then
+        mv "$install_path" "$backup_path"
+    fi
+
+    if ! mv "$staging_path" "$install_path"; then
+        if [[ -d "$backup_path" ]]; then
+            mv "$backup_path" "$install_path"
+        fi
+        return 1
+    fi
+
+    if ! /usr/bin/codesign --verify --deep --strict "$install_path"; then
+        rm -rf "$install_path"
+        if [[ -d "$backup_path" ]]; then
+            mv "$backup_path" "$install_path"
+        fi
+        return 1
+    fi
+
+    rm -rf "$backup_path"
+    touch "$install_path"
+    "$lsregister" -f "$install_path"
+    /usr/bin/open -n "$install_path"
 }
 
 case "$MODE" in

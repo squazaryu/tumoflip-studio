@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RELEASE_TAG="${1:-v0.1.0-beta.1}"
-BUILD_NUMBER="${2:-1}"
+BUILD_NUMBER="${2:-2}"
 
 if [[ ! "$RELEASE_TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-beta\.([1-9][0-9]*)$ ]]; then
     echo "release tag must match vMAJOR.MINOR.PATCH-beta.N" >&2
