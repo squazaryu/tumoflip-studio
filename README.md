@@ -10,6 +10,9 @@ and release lifecycle as the other Tumoflip tools.
 
 ## Included workspaces
 
+- **Device Manager**: native Flipper USB identity, power and read-only `/ext` and
+  `/int` file browsing. File mutation, application management, Marketplace,
+  firmware installation and DFU recovery follow as separately accepted phases.
 - **AI & Relay**: AI-provider collection, local HTTP/Bonjour endpoint, BLE App Bridge,
   allowlisted host-command Relay, Claude Buddy relay, and ARF offload transport.
 - **TumoCard**: read-only NFC CCID discovery, public ISO 7816 metadata, APDU timeline,
@@ -23,6 +26,10 @@ and release lifecycle as the other Tumoflip tools.
 The application coordinates wired transports so PC/SC, serial, and Flipper USB jobs
 cannot claim the same device concurrently. Bluetooth and the local HTTP service can
 remain active in the background.
+
+Device Manager implements the public Flipper protobuf protocol in the native
+`TumoflipDeviceKit` Swift target. qFlipper and FlipperUI are behavioral and visual
+references only; Studio neither embeds nor links their code.
 
 Closing the main window keeps those background services running in the macOS menu bar.
 The standard macOS **Quit** action and Command-Q also move the application into this

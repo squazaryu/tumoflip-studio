@@ -6,6 +6,7 @@ final class AppState: ObservableObject {
 
     let log: ActivityLogStore
     let transport: TransportCoordinator
+    let deviceManager: DeviceManagerStore
     let aiRadar: AIRadarStore
     let card: StudioStore
     let network: LiveStore
@@ -20,6 +21,7 @@ final class AppState: ObservableObject {
 
         self.log = log
         self.transport = transport
+        self.deviceManager = DeviceManagerStore(transportCoordinator: transport, activityLog: log)
         self.aiRadar = AIRadarStore()
         self.card = StudioStore(transportCoordinator: transport)
         self.network = LiveStore(transportCoordinator: transport)
@@ -40,6 +42,7 @@ final class AppState: ObservableObject {
     func stop() {
         guard started else { return }
         card.stopMonitoring()
+        deviceManager.stop()
         if network.connected { network.disconnect() }
         aiRadar.stop()
         transport.releaseAll(owner: "AI Relay")

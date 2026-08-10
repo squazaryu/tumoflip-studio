@@ -49,6 +49,12 @@ struct StudioOverviewView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             StudioSectionHeader(title: "Workspaces", systemImage: "square.grid.2x2")
                                 .padding(14)
+                            workspaceRow(
+                                title: "Device Manager",
+                                detail: "USB identity and read-only file browser",
+                                icon: "externaldrive.connected.to.line.below",
+                                section: .deviceManager
+                            )
                             Divider()
                             workspaceRow(
                                 title: "AI & Relay",

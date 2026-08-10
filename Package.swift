@@ -10,6 +10,10 @@ let package = Package(
         .library(name: "TumoCardCore", targets: ["TumoCardCore"]),
         .library(name: "MarauderKit", targets: ["MarauderKit"]),
         .library(name: "TumoflipFapCore", targets: ["TumoflipFapCore"]),
+        .library(name: "TumoflipDeviceKit", targets: ["TumoflipDeviceKit"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.0"),
     ],
     targets: [
         .target(
@@ -20,9 +24,21 @@ let package = Package(
         .target(name: "TumoCardCore"),
         .target(name: "MarauderKit"),
         .target(name: "TumoflipFapCore"),
+        .target(
+            name: "TumoflipDeviceKit",
+            dependencies: [
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
+            ]
+        ),
         .executableTarget(
             name: "TumoflipStudio",
-            dependencies: ["CPCSCBridge", "TumoCardCore", "MarauderKit", "TumoflipFapCore"],
+            dependencies: [
+                "CPCSCBridge",
+                "TumoCardCore",
+                "MarauderKit",
+                "TumoflipFapCore",
+                "TumoflipDeviceKit",
+            ],
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("CoreBluetooth"),
@@ -33,5 +49,6 @@ let package = Package(
         .testTarget(name: "TumoflipStudioTests", dependencies: ["TumoflipStudio"]),
         .testTarget(name: "TumoCardCoreTests", dependencies: ["TumoCardCore"]),
         .testTarget(name: "MarauderKitTests", dependencies: ["MarauderKit"]),
+        .testTarget(name: "TumoflipDeviceKitTests", dependencies: ["TumoflipDeviceKit"]),
     ]
 )

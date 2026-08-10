@@ -46,6 +46,8 @@ struct StudioRootView: View {
                 card: state.card,
                 open: { state.selection = $0 }
             )
+        case .deviceManager:
+            DeviceManagerView(store: state.deviceManager)
         case .aiRadar:
             AIRadarView(store: state.aiRadar)
         case .cards:
