@@ -2,6 +2,7 @@ import Foundation
 
 enum WorkspaceSection: String, CaseIterable, Identifiable {
     case overview
+    case deviceManager
     case aiRadar
     case cards
     case network
@@ -13,6 +14,7 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .overview: "Overview"
+        case .deviceManager: "Device Manager"
         case .aiRadar: "AI & Relay"
         case .cards: "TumoCard"
         case .network: "Network Lab"
@@ -24,6 +26,7 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .overview: "rectangle.grid.2x2"
+        case .deviceManager: "externaldrive.connected.to.line.below"
         case .aiRadar: "antenna.radiowaves.left.and.right"
         case .cards: "creditcard"
         case .network: "wifi.router"
