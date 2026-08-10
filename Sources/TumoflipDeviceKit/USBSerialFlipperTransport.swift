@@ -12,6 +12,9 @@ public final class USBSerialFlipperTransport: FlipperTransport, @unchecked Senda
     private var fileDescriptor: Int32 = -1
     private var running = false
 
+    private static let cliPrompt = Data(">: ".utf8)
+    private static let handshakeBufferLimit = 256
+
     public init(path: String) {
         self.path = path
         let stream = AsyncStream<Data>.makeStream(bufferingPolicy: .bufferingNewest(128))
@@ -94,9 +97,7 @@ public final class USBSerialFlipperTransport: FlipperTransport, @unchecked Senda
             }
 
             tcflush(handle, TCIOFLUSH)
-            try writeAll(Data("\rstart_rpc_session\r".utf8), to: handle)
-            usleep(150_000)
-            tcflush(handle, TCIFLUSH)
+            try enterRPCMode(handle: handle)
 
             stateLock.lock()
             fileDescriptor = handle
@@ -109,6 +110,92 @@ public final class USBSerialFlipperTransport: FlipperTransport, @unchecked Senda
         } catch {
             Darwin.close(handle)
             throw error
+        }
+    }
+
+    /// A newly opened VCP may still be starting its CLI and printing the MOTD.
+    /// Synchronize on the real prompt instead of assuming a fixed delay, then
+    /// discard only the textual transition emitted before RPC owns the pipe.
+    private func enterRPCMode(handle: Int32) throws {
+        let promptDeadline = Date().addingTimeInterval(4)
+        var received = Data()
+
+        while Date() < promptDeadline {
+            try writeAll(Data("\r".utf8), to: handle)
+            guard tcdrain(handle) == 0 else {
+                throw FlipperTransportError.cannotConfigure("tcdrain")
+            }
+
+            let retryDeadline = min(promptDeadline, Date().addingTimeInterval(0.4))
+            while Date() < retryDeadline {
+                if let bytes = try readAvailable(handle: handle, waitMilliseconds: 80) {
+                    received.append(bytes)
+                    if received.count > Self.handshakeBufferLimit {
+                        received.removeFirst(received.count - Self.handshakeBufferLimit)
+                    }
+                    if received.range(of: Self.cliPrompt) != nil {
+                        try startRPCCommand(handle: handle)
+                        return
+                    }
+                }
+            }
+        }
+
+        throw FlipperTransportError.rpcHandshakeTimedOut
+    }
+
+    private func startRPCCommand(handle: Int32) throws {
+        try writeAll(Data("start_rpc_session\r".utf8), to: handle)
+        guard tcdrain(handle) == 0 else {
+            throw FlipperTransportError.cannotConfigure("tcdrain")
+        }
+
+        let deadline = Date().addingTimeInterval(2)
+        var lastTextAt = Date()
+        var receivedText = false
+
+        while Date() < deadline {
+            if try readAvailable(handle: handle, waitMilliseconds: 50) != nil {
+                receivedText = true
+                lastTextAt = Date()
+                continue
+            }
+
+            let quietFor = Date().timeIntervalSince(lastTextAt)
+            if (receivedText && quietFor >= 0.2) || (!receivedText && quietFor >= 0.5) {
+                return
+            }
+        }
+
+        throw FlipperTransportError.rpcHandshakeTimedOut
+    }
+
+    private func readAvailable(handle: Int32, waitMilliseconds: Int32) throws -> Data? {
+        var descriptor = pollfd(fd: handle, events: Int16(POLLIN), revents: 0)
+        var result: Int32
+        repeat {
+            result = Darwin.poll(&descriptor, 1, waitMilliseconds)
+        } while result < 0 && errno == EINTR
+
+        guard result >= 0 else {
+            throw FlipperTransportError.cannotOpen(path, String(cString: strerror(errno)))
+        }
+        guard result > 0 else { return nil }
+        guard descriptor.revents & Int16(POLLERR | POLLHUP | POLLNVAL) == 0 else {
+            throw FlipperTransportError.disconnected
+        }
+        guard descriptor.revents & Int16(POLLIN) != 0 else { return nil }
+
+        var buffer = [UInt8](repeating: 0, count: 2048)
+        let count = Darwin.read(handle, &buffer, buffer.count)
+        if count > 0 {
+            return Data(buffer.prefix(count))
+        } else if count < 0, errno == EINTR || errno == EAGAIN {
+            return nil
+        } else if count < 0 {
+            throw FlipperTransportError.cannotOpen(path, String(cString: strerror(errno)))
+        } else {
+            throw FlipperTransportError.disconnected
         }
     }
 

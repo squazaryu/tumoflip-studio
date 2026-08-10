@@ -222,7 +222,12 @@ public final class FlipperRPCSession: @unchecked Sendable {
         defer { stateLock.unlock() }
 
         for payload in try decoder.append(bytes) {
-            let message = try PB_Main(serializedBytes: payload)
+            let message: PB_Main
+            do {
+                message = try PB_Main(serializedBytes: payload)
+            } catch {
+                throw FlipperRPCError.invalidResponse
+            }
             router.route(message)
         }
     }

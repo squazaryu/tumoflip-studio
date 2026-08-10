@@ -86,6 +86,29 @@ final class DeviceKitTests: XCTestCase {
         XCTAssertEqual(responses.count, 2)
         await session.stop()
     }
+
+    func testRPCSessionMapsMalformedPayloadToStableError() async throws {
+        let transport = MockTransport()
+        let session = FlipperRPCSession(transport: transport)
+        try await session.start()
+
+        let command = Task {
+            try await session.command(timeout: 2) { main in
+                main.content = .systemDeviceInfoRequest(PBSystem_DeviceInfoRequest())
+            }
+        }
+
+        _ = try await transport.waitForRequest()
+        transport.deliverRaw(DelimitedProtobufDecoder.encode(Data([0x08])))
+
+        do {
+            _ = try await command.value
+            XCTFail("Malformed protobuf must fail the command")
+        } catch {
+            XCTAssertEqual(error as? FlipperRPCError, .invalidResponse)
+        }
+        await session.stop()
+    }
 }
 
 private final class MockTransport: FlipperTransport, @unchecked Sendable {
@@ -107,6 +130,10 @@ private final class MockTransport: FlipperTransport, @unchecked Sendable {
     }
 
     func send(_ data: Data) async throws {
+        appendSent(data)
+    }
+
+    private func appendSent(_ data: Data) {
         lock.lock()
         sent.append(data)
         lock.unlock()
@@ -129,6 +156,10 @@ private final class MockTransport: FlipperTransport, @unchecked Sendable {
 
     func deliver(_ message: PB_Main) throws {
         continuation.yield(DelimitedProtobufDecoder.encode(try message.serializedData()))
+    }
+
+    func deliverRaw(_ data: Data) {
+        continuation.yield(data)
     }
 
     private func firstSentFrame() -> Data? {
